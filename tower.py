@@ -1,4 +1,5 @@
 class graphical_object:
+    alive = 1
     def __init__(self, xloc, yloc,
                  xsize, ysize):
         self.xloc = xloc
@@ -8,7 +9,8 @@ class graphical_object:
         
     def draw(self, screen):
         import pygame
-        pygame.draw.rect(screen, 
+        if self.alive == 1:
+            pygame.draw.rect(screen, 
                          self.color,
                          pygame.Rect(self.xloc,
                                      self.yloc,
@@ -27,8 +29,9 @@ class tower(graphical_object):
         for choice in targets:
             if math.sqrt((choice.xloc - self.xloc)**2  + (choice.yloc - self.yloc)**2) <= self.range:
                 choice.health = choice.health - self.power
-                if choice.health > 0:
-                    targ_return.append(choice)
+            if choice.health <= 0:
+                choice.alice =0
+            targ_return.append(choice)
         return targ_return            
     
 class attackers(graphical_object):
@@ -46,8 +49,9 @@ class attackers(graphical_object):
                     choice.health = choice.health - self.power
                 else:
                     self.yloc = self.yloc + self.velocity
-                if choice.health > 0:
-                    targ_return.append(choice)
+                if choice.health <= 0:
+                    choice.alice =0
+                targ_return.append(choice)
         return [self, targ_return]
 
 import pygame
@@ -80,7 +84,7 @@ while not done:
                     newvalues = army.move(towers)
                     army = newvalues[0]
                     towers = newvalues[1] 
-                screen.fill((0, 0, 0))    
+                screen.fill((0, 0, 0))
                 for instance in towers:
                     instance.draw(screen)
                 for instance in listofattackers:
