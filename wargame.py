@@ -2,6 +2,10 @@ import pygame
 import numpy
 
 pygame.init()
+
+first = True
+
+
 xmax = 800
 ymax = 600
 
@@ -16,10 +20,16 @@ pygame.mixer.init()
 boom_sound = pygame.mixer.Sound("sounds/boom.wav")
 rowan_boom  = pygame.mixer.Sound("sounds/rowan_boom.wav") 
 shoot = pygame.mixer.Sound("sounds/shoot.wav") 
+WIN_SOUND = pygame.mixer.Sound("sounds/beethoven-ode-to-joy.wav")
 
 def rect(ob):
     return pygame.Rect(ob.xloc, ob.yloc, ob.xsize, ob.ysize)
 
+screen = pygame.display.set_mode((xmax, ymax))
+
+
+
+screen.fill((255,255,255)) 
 
 class graphical_object:
     alive = 1
@@ -43,18 +53,45 @@ class graphical_object:
 class player(graphical_object):
     color = (0, 128, 255)
     direction = (True, -3)
+    angle = 0
+    
+    def rectmake(self):
+        self.rect = self.player_im.get_rect(topleft = (self.xloc, self.yloc))
+    
+    def __init__(self, xloc, yloc):
+        
+        self.xloc = xloc
+        self.yloc = yloc
+        self.player_im = pygame.image.load("images/player.png").convert()
+        self.rectmake()
+        
+    def draw(self, screen):
+        if self.alive == 1:
+            screen.blit( self.player_im,self.rect)
     
     def move(self, x, amount):
         if x:
             new = self.xloc + amount
             if new < xmax and new > 0:
                 self.xloc = new
+            if amount >0:
+                self.player_im = pygame.transform.rotate(self.player_im, (270 - self.angle ))
+                self.angle = 270
+            else:
+                self.player_im = pygame.transform.rotate(self.player_im, (90 - self.angle ))
+                self.angle = 90
         else:
             new = self.yloc + amount
             if new < ymax and new > 0:
                 self.yloc = new
+            if amount >0:
+                self.player_im = pygame.transform.rotate(self.player_im, (180 - self.angle ))
+                self.angle = 180
+            else:
+                self.player_im = pygame.transform.rotate(self.player_im, (0 - self.angle ))
+                self.angle = 0
         self.direction = (x, amount)
-        self.rect = rect(self)
+        self.rectmake()
         
 class badguy(graphical_object):
     color =  (255, 0, 0)
@@ -76,17 +113,17 @@ class bullet(graphical_object):
             newxloc = player.xloc
             newyloc = player.yloc
             if player.direction[0]:
-                  newyloc = newyloc - bullet_size/2 + player.ysize/2
+                  newyloc = newyloc - bullet_size/2 + 10/2
                   if player.direction[1] < 0:
                      newxloc = newxloc - bullet_size
                   else:
-                     newxloc = newxloc + player.xsize
+                     newxloc = newxloc + 10
             else:
-                  newxloc = newxloc - bullet_size/2 + player.xsize/2
+                  newxloc = newxloc - bullet_size/2 + 10/2
                   if player.direction[1] < 0:
                      newyloc = newyloc - bullet_size
                   else:
-                     newyloc = newyloc + player.ysize
+                     newyloc = newyloc + 10
             
             self.xloc = newxloc
             self.yloc =  newyloc
@@ -118,10 +155,9 @@ class bullet(graphical_object):
     
 
 
-player = player(300, 300, 10, 10)
+player = player(300, 300)
 
-screen = pygame.display.set_mode((xmax, ymax))
-screen.fill((255,255,255)) 
+
 
 player.draw(screen)
 pygame.display.flip()
@@ -191,6 +227,7 @@ while not done:
     if (len(badguys) == 0):
         done = True
         winner = True
+        
 
 if winner:
     done = False
@@ -201,6 +238,9 @@ if winner:
         pressed = pygame.key.get_pressed()
         if (pressed[pygame.K_ESCAPE]):
             done = True
+        if first:    
+            pygame.mixer.Channel(3).play(WIN_SOUND)
+            first = False
         screen.fill((0,0,0))
         pygame.font.init()
         myfont = pygame.font.SysFont("Comic Sans MS", 30)
