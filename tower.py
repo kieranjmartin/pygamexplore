@@ -29,9 +29,10 @@ class tower(graphical_object):
         for choice in targets:
             if math.sqrt((choice.xloc - self.xloc)**2  + (choice.yloc - self.yloc)**2) <= self.range:
                 choice.health = choice.health - self.power
-            if choice.health <= 0:
-                choice.alice =0
-            targ_return.append(choice)
+
+            if choice.health > 0:
+               targ_return.append(choice)
+
         return targ_return            
     
 class attackers(graphical_object):
@@ -43,15 +44,19 @@ class attackers(graphical_object):
         targ_return = []
         if len(targets) == 0:
             self.yloc = self.yloc + self.velocity
-        else:     
+        else:
+            flag = 0 
             for choice in targets:
-                if (choice.xloc <= self.xloc) and ((choice.xloc + choice.xsize) >= self.xloc) and (self.yloc >= choice.yloc) and self.yloc <= (choice.yloc + choice.ysize):
+                if (choice.xloc <= (self.xloc+self.xsize)) and ((choice.xloc + choice.xsize) >= self.xloc) and ((self.yloc+self.ysize) >= choice.yloc) and (self.yloc+self.ysize) <= (choice.yloc + choice.ysize):
                     choice.health = choice.health - self.power
-                else:
-                    self.yloc = self.yloc + self.velocity
-                if choice.health <= 0:
-                    choice.alice =0
-                targ_return.append(choice)
+
+                    flag = 1
+                if choice.health > 0:
+                    targ_return.append(choice)
+            if flag == 0:
+               self.yloc = self.yloc + self.velocity
+
+
         return [self, targ_return]
 
 import pygame
@@ -70,28 +75,30 @@ while not done:
         for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                         done = True
-                if  pygame.mouse.get_pressed()[0]:
-                    loc = pygame.mouse.get_pos()
-                    towers.append(tower(loc[0], loc[1],
-                                  20,20))
-                if len(listofattackers) < 10:
-                    rand_xloc = numpy.random.randint(xmax)
-                    listofattackers.append(attackers(rand_xloc, 0,
-                                                     20, 20))
-                for shooters in towers:
-                    listofattackers = shooters.shoot(listofattackers)
-                for army in listofattackers:
-                    newvalues = army.move(towers)
-                    army = newvalues[0]
-                    towers = newvalues[1] 
-                screen.fill((0, 0, 0))
-                for instance in towers:
-                    instance.draw(screen)
-                for instance in listofattackers:
-                    instance.draw(screen)
+
+        if  pygame.mouse.get_pressed()[0]:
+            loc = pygame.mouse.get_pos()
+            towers.append(tower(loc[0], loc[1],
+                          20,20))
+        if len(listofattackers) < 10:
+            rand_xloc = numpy.random.randint(xmax)
+            listofattackers.append(attackers(rand_xloc, 0,
+                                             20, 20))
+        for shooters in towers:
+            listofattackers = shooters.shoot(listofattackers)
+        for army in listofattackers:
+            newvalues = army.move(towers)
+            army = newvalues[0]
+            towers = newvalues[1] 
+        screen.fill((0, 0, 0))    
+        for instance in towers:
+            instance.draw(screen)
+        for instance in listofattackers:
+            instance.draw(screen)
+
                         
         pygame.display.flip()
-        clock.tick(60)    
+        clock.tick(30)    
                     
 
 
